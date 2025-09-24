@@ -53,7 +53,12 @@ COMENTARIOS GENERALES DE ESTILOS:
         - lg:grid-cols-4: Muestra 4 columnas en pantallas de tamaño 'large' en adelante (escritorios).
         - gap-8: Espacio entre las tarjetas de producto. Puedes aumentar o disminuir este valor (ej. gap-4, gap-6, gap-10).
         -->
-    <div id="product-catalog" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"></div>
+    <div id="product-catalog" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center"></div>
+
+    <!-- Modal para imagen a pantalla completa -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+      <img id="modal-img" src="" alt="Imagen ampliada" class="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-white">
+    </div>
 
     </div>
 
@@ -68,7 +73,7 @@ COMENTARIOS GENERALES DE ESTILOS:
     <script>
     async function loadProducts() {
       try {
-  const response = await fetch('datos-productos.json');
+        const response = await fetch('datos-productos.json');
         if (!response.ok) throw new Error('No se pudo cargar el archivo de productos');
         const products = await response.json();
         document.getElementById('total-articulos').textContent = `Total de artículos: ${products.length}`;
@@ -79,14 +84,22 @@ COMENTARIOS GENERALES DE ESTILOS:
           const card = document.createElement('div');
           card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition hover:shadow-xl hover:transform hover:-translate-y-1 flex flex-col fade-in';
           card.innerHTML = `
-            <div class="h-56 w-full">
-              <img src="${product.foto}" alt="${product.articulo}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x400/eeeeee/cccccc?text=Imagen+no+disponible';">
+            <div class="h-56 w-full cursor-pointer group">
+              <img src="${product.foto}" alt="${product.articulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" onerror="this.onerror=null;this.src='https://placehold.co/400x400/eeeeee/cccccc?text=Imagen+no+disponible';">
             </div>
             <div class="p-4 text-center border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-800 truncate">${product.articulo}</h3>
+              <h3 class="text-lg font-semibold text-gray-800 text-center">${product.articulo}</h3>
               <p class="text-sm text-gray-500 mt-1">Código: ${product.codigo}</p>
             </div>
           `;
+          // Evento para imagen a pantalla completa
+          card.querySelector('img').addEventListener('click', function() {
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = this.src;
+            modalImg.alt = this.alt;
+            modal.classList.remove('hidden');
+          });
           fragment.appendChild(card);
         }
         catalogContainer.appendChild(fragment);
@@ -95,7 +108,17 @@ COMENTARIOS GENERALES DE ESTILOS:
         document.getElementById('total-articulos').textContent = '';
       }
     }
-    document.addEventListener('DOMContentLoaded', loadProducts);
+    // Cerrar modal al hacer click fuera de la imagen o presionar ESC
+    document.addEventListener('DOMContentLoaded', () => {
+      loadProducts();
+      const modal = document.getElementById('modal');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') modal.classList.add('hidden');
+      });
+    });
     </script>
 </body>
 </html>
