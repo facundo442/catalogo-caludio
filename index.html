@@ -41,7 +41,7 @@ COMENTARIOS GENERALES DE ESTILOS:
         - mb-12: Margen inferior (margin-bottom) para separarlo de la cuadrícula de productos.
         -->
   <h1 class="text-4xl font-bold text-center text-gray-800 mb-4">CATÁLOGO</h1>
-  <p id="total-articulos" class="text-center text-gray-600 mb-8"></p>
+
 
         <!-- 
         Cuadrícula de Productos (Grid):
@@ -53,7 +53,7 @@ COMENTARIOS GENERALES DE ESTILOS:
         - lg:grid-cols-4: Muestra 4 columnas en pantallas de tamaño 'large' en adelante (escritorios).
         - gap-8: Espacio entre las tarjetas de producto. Puedes aumentar o disminuir este valor (ej. gap-4, gap-6, gap-10).
         -->
-    <div id="product-catalog" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center"></div>
+  <div id="product-catalog" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 justify-items-center"></div>
 
     <!-- Modal para imagen a pantalla completa -->
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
@@ -76,20 +76,20 @@ COMENTARIOS GENERALES DE ESTILOS:
         const response = await fetch('datos-productos.json');
         if (!response.ok) throw new Error('No se pudo cargar el archivo de productos');
         const products = await response.json();
-        document.getElementById('total-articulos').textContent = `Total de artículos: ${products.length}`;
+  // Eliminado el número total de artículos
         const catalogContainer = document.getElementById('product-catalog');
         catalogContainer.innerHTML = '';
         const fragment = document.createDocumentFragment();
         for (const product of products) {
           const card = document.createElement('div');
-          card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition hover:shadow-xl hover:transform hover:-translate-y-1 flex flex-col fade-in';
+          card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition hover:shadow-xl hover:transform hover:-translate-y-1 flex flex-col fade-in w-36 md:w-40 lg:w-36 xl:w-40';
           card.innerHTML = `
-            <div class="h-56 w-full cursor-pointer group">
+            <div class="h-36 w-full cursor-pointer group">
               <img src="${product.foto}" alt="${product.articulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" onerror="this.onerror=null;this.src='https://placehold.co/400x400/eeeeee/cccccc?text=Imagen+no+disponible';">
             </div>
-            <div class="p-4 text-center border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-800 text-center">${product.articulo}</h3>
-              <p class="text-sm text-gray-500 mt-1">Código: ${product.codigo}</p>
+            <div class="p-3 text-center border-t border-gray-200">
+              <h3 class="text-base font-semibold text-gray-800 text-center">${product.articulo}</h3>
+              <p class="text-xs text-gray-500 mt-1">Código: ${product.codigo}</p>
             </div>
           `;
           // Evento para imagen a pantalla completa
@@ -105,7 +105,7 @@ COMENTARIOS GENERALES DE ESTILOS:
         catalogContainer.appendChild(fragment);
       } catch (error) {
         document.getElementById('product-catalog').innerHTML = `<p class="text-center text-red-500 col-span-full">No se pudo cargar el catálogo. Revisa el archivo Datos de Productos.json.</p>`;
-        document.getElementById('total-articulos').textContent = '';
+  // Eliminado el número total de artículos
       }
     }
     // Cerrar modal al hacer click fuera de la imagen o presionar ESC
