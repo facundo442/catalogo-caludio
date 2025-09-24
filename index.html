@@ -68,7 +68,7 @@ COMENTARIOS GENERALES DE ESTILOS:
     <script>
     async function loadProducts() {
       try {
-        const response = await fetch('Datos de Productos.json');
+  const response = await fetch('datos-productos.json');
         if (!response.ok) throw new Error('No se pudo cargar el archivo de productos');
         const products = await response.json();
         document.getElementById('total-articulos').textContent = `Total de artículos: ${products.length}`;
