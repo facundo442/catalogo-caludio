@@ -13,7 +13,7 @@
  */
 export function getImagePath(codigo) {
   // 1. Ruta Base: La carpeta donde están todas las fotos.
-  const BASE_PATH = "catalogo-M-T/imagenes/";
+  const BASE_PATH = "/catalogo-M-T/imagenes/";
 
   // 2. Extensión de archivo (asumimos que todas son .jpg).
   const EXTENSION = ".jpg";
