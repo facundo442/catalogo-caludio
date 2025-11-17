@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+     
+   
+  <meta charset="utf-8" />
+     
+   
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Catálogo de Productos</title>
+     
+   
+  <script src="https://cdn.tailwindcss.com"></script>
+      <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 1.0s ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 font-sans">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">CATÁLOGO</h1>
+
+                    <div id="product-catalog"       class="grid grid-cols-4 gap-6 justify-items-center"></div>
+
+            <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden"  
+          role="dialog" aria-hidden="true" aria-label="Imagen ampliada">
+                  <img id="modal-img" src="" alt="Imagen ampliada"        
+        class="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-white">
+                </div>
+          </div>
+
+     
+   
+  <script type="module">
+    // Importa las funciones que creamos en el archivo 'utils.js'
+    import { getImagePath, FALLBACK_IMAGE_PATH } from './utils.js';
+
+    const tryPaths = [
+      './datos-productos.json',
+      './datos-productos.JSON',
+      './Datos-productos.json',
+      './Datos de Productos.json',
+      'datos-productos.json'
+    ];
+
+    async function fetchAny(paths) {
+      for (const p of paths) {
+        try {
+          const res = await fetch(p, { cache: 'no-store' });
+          if (res.ok) return res;
+          // continúa si 404 o error de status
+        } catch (e) {
+          // ignore y prueba siguiente ruta
+        }
+      }
+      throw new Error('No se pudo obtener el archivo JSON desde las rutas comprobadas.');
+    }
+
+    async function loadProducts() {
+      try {
+        let response = null;
+        try { response = await fetchAny(tryPaths); } catch (e) { response = null; }
+
+        let products;
+        if (response) {
+          products = await response.json();
+        } else {
+          const inline = document.getElementById('datos-productos-inline');
+          if (inline) {
+            products = JSON.parse(inline.textContent);
+          } else {
+            throw new Error('No se encontró datos-productos.json ni JSON embebido.');
+          }
+        }
+
+        if (!Array.isArray(products)) {
+          if (products && Array.isArray(products.products)) products = products.products;
+          else throw new Error('Formato inválido: se esperaba un array de productos.');
+        }
+
+        const catalog = document.getElementById('product-catalog');
+        catalog.innerHTML = '';
+        const frag = document.createDocumentFragment();
+
+        for (const p of products) {
+          const articulo = p.articulo ?? 'Sin nombre';
+          const codigo = p.codigo ?? '—';
+
+          // Obtenemos la ruta de la imagen usando el código
+          const foto = getImagePath(codigo);
+
+          const card = document.createElement('div');
+          // CORREGIDO: Se eliminó 'w-44' para que ocupe el espacio de la columna.
+          card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition hover:shadow-xl hover:-translate-y-1 transform flex flex-col fade-in';
+
+          card.innerHTML = `
+            <div class="h-36 w-full cursor-pointer group">
+              <img src="${escapeHtml(foto)}" alt="${escapeHtml(articulo)}"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                
+                                onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_PATH}'">
+            </div>
+                        <div class="p-3 text-center border-t border-gray-200">
+              <h3 class="text-sm font-semibold text-gray-800">${escapeHtml(articulo)}</h3>
+              <p class="text-xs text-gray-500 mt-1">Código: ${escapeHtml(codigo)}</p>
+            </div>
+          `;
+
+          const imgEl = card.querySelector('img');
+          imgEl.addEventListener('click', (e) => {
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = imgEl.src;
+            modalImg.alt = imgEl.alt || 'Imagen ampliada';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+          });
+
+          frag.appendChild(card);
+        }
+
+        catalog.appendChild(frag);
+      } catch (err) {
+        console.error('Error cargando productos:', err);
+        document.getElementById('product-catalog').innerHTML = `
+          <div class="col-span-full text-center">
+            <p class="text-red-500 font-semibold">No se pudo cargar el catálogo.</p>
+            <pre class="text-xs text-gray-700 bg-gray-100 p-2 rounded overflow-auto" style="max-height:160px">${escapeHtml(err && err.message ? err.message : String(err))}</pre>
+            <p class="text-xs text-gray-500 mt-2">Si abre con file:// use un servidor local: <code>python -m http.server 5500</code></p>
+          </div>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadProducts();
+
+      const modal = document.getElementById('modal');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+          document.getElementById('modal-img').src = '';
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+          document.getElementById('modal-img').src = '';
+        }
+      });
+    });
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+  </script>
+     
+</body>
+
+</html>
